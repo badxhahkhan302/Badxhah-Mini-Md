@@ -5,6 +5,7 @@ const port = process.env.PORT || 8000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ---------- PAIRING PAGE ----------
 app.get('/', (req, res) => {
     res.send(`
     <!DOCTYPE html>
@@ -35,6 +36,7 @@ app.get('/', (req, res) => {
     `);
 });
 
+// ---------- PAIRING CODE GENERATOR (FIXED) ----------
 app.get('/pair', async (req, res) => {
     const number = req.query.number;
     if (!number) return res.json({ error: 'Number required' });
@@ -54,7 +56,7 @@ app.get('/pair', async (req, res) => {
 
         sock.ev.on('creds.update', saveCreds);
 
-        // Pairing code with new method
+        // Pairing code with delay
         setTimeout(async () => {
             try {
                 const code = await sock.requestPairingCode(number);
@@ -63,7 +65,7 @@ app.get('/pair', async (req, res) => {
             } catch (e) {
                 res.json({ error: 'Pairing failed: ' + e.message });
             }
-        }, 1000);
+        }, 2000);
 
     } catch (e) {
         res.json({ error: 'Server error: ' + e.message });
