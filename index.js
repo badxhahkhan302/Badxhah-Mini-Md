@@ -1,77 +1,41 @@
-const express = require('express');
-const app = express();
-const port = process.env.PORT || 8000;
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// ---------- PAIRING PAGE ----------
-app.get('/', (req, res) => {
-    res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head><title>Mosa MD Bot</title></head>
-    <body style="background:#0d0d0d;color:white;font-family:Arial;text-align:center;padding:50px;">
-        <h1 style="color:red;">🔥 Mosa MD Bot</h1>
-        <h2>👑 Owner: Badxhah Khan</h2>
-        <input type="text" id="number" placeholder="923015006314" style="padding:10px;width:300px;border-radius:6px;border:none;">
-        <button onclick="getCode()" style="padding:10px 20px;background:red;color:white;border:none;border-radius:6px;">GET PAIR CODE</button>
-        <div id="result" style="margin-top:20px;color:lime;"></div>
-        <script>
-        async function getCode() {
-            const num = document.getElementById('number').value.replace(/[^0-9]/g, '');
-            if (!num) return alert('Enter number');
-            document.getElementById('result').innerText = '⏳ Connecting...';
-            try {
-                const res = await fetch('/pair?number=' + num);
-                const data = await res.json();
-                document.getElementById('result').innerText = data.code || data.error || 'Error';
-            } catch(e) {
-                document.getElementById('result').innerText = '❌ Server error';
-            }
-        }
-        </script>
-    </body>
-    </html>
-    `);
-});
-
-// ---------- PAIRING CODE GENERATOR (FIXED) ----------
-app.get('/pair', async (req, res) => {
-    const number = req.query.number;
-    if (!number) return res.json({ error: 'Number required' });
-
-    try {
-        const { default: makeWASocket, useMultiFileAuthState, Browsers } = require('@whiskeysockets/baileys');
-        const { state, saveCreds } = await useMultiFileAuthState('auth_info');
-        
-        const sock = makeWASocket({
-            auth: state,
-            browser: Browsers.macOS('Chrome'),
-            printQRInTerminal: false,
-            syncFullHistory: false,
-            markOnlineOnConnect: false,
-            generateHighQualityLinkPreview: false,
-        });
-
-        sock.ev.on('creds.update', saveCreds);
-
-        // Pairing code with delay
-        setTimeout(async () => {
-            try {
-                const code = await sock.requestPairingCode(number);
-                await sock.ws.close();
-                res.json({ code });
-            } catch (e) {
-                res.json({ error: 'Pairing failed: ' + e.message });
-            }
-        }, 2000);
-
-    } catch (e) {
-        res.json({ error: 'Server error: ' + e.message });
-    }
-});
-
-app.listen(port, () => {
-    console.log(`🚀 Mosa MD Bot running on port ${port}`);
-});
+{
+  "name": "arslan-bot",
+  "version": "2.0.0",
+  "description": "WhatsApp Bot Base Created By ArslanMD Official",
+  "main": "index.js",
+  "engines": {
+    "node": "20.x"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "latest",
+    "axios": "latest",
+    "body-parser": "^1.20.2",
+    "crypto": "latest",
+    "cors": "latest",
+    "dotenv": "latest",
+    "express": "^4.18.2",
+    "node-fetch": "^2.7.0",
+    "sharp": "^0.32.6",
+    "path": "^0.12.7",
+    "jimp": "latest",
+    "ytdl-core": "^4.11.5",
+    "node-telegram-bot-api": "^0.66.0",
+    "fs-extra": "^11.2.0",
+    "pino": "^8.17.0",
+    "@octokit/rest": "^20.0.2",
+    "child_process": "^1.0.2",
+    "denethdev-ytmp3": "1.0.3",
+    "cheerio": "latest",
+    "ruhend-scraper": "9.0.1",
+    "yt-search": "latest",
+    "fluent-ffmpeg": "^2.1.2",
+    "wa-sticker-formatter": "^4.4.4",
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "file-type": "21.0.0",
+    "mongoose": "^8.0.0",
+    "moment-timezone": "^0.6.0"
+  }
+}
