@@ -1,3 +1,4 @@
+
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 8000;
@@ -5,7 +6,6 @@ const port = process.env.PORT || 8000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ---------- PAIRING PAGE ----------
 app.get('/', (req, res) => {
     res.send(`
     <!DOCTYPE html>
@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
             if (!num) return alert('Enter number');
             const res = await fetch('/pair?number=' + num);
             const data = await res.json();
-            document.getElementById('result').innerText = data.code || 'Error';
+            document.getElementById('result').innerText = data.code || data.error || 'Error';
         }
         </script>
     </body>
@@ -31,13 +31,12 @@ app.get('/', (req, res) => {
     `);
 });
 
-// ---------- PAIRING CODE GENERATOR ----------
 app.get('/pair', async (req, res) => {
     const number = req.query.number;
     if (!number) return res.json({ error: 'Number required' });
 
     try {
-        const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
+        const { default: makeWASocket, useMultiFileAuthState } = require('@whiskeysockets/baileys');
         const { state, saveCreds } = await useMultiFileAuthState('auth_info');
         const sock = makeWASocket({
             auth: state,
@@ -47,6 +46,7 @@ app.get('/pair', async (req, res) => {
 
         sock.ev.on('creds.update', saveCreds);
 
+        // Pairing code
         const code = await sock.requestPairingCode(number);
         await sock.ws.close();
         res.json({ code });
