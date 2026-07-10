@@ -1,4 +1,3 @@
-
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 8000;
@@ -21,9 +20,14 @@ app.get('/', (req, res) => {
         async function getCode() {
             const num = document.getElementById('number').value.replace(/[^0-9]/g, '');
             if (!num) return alert('Enter number');
-            const res = await fetch('/pair?number=' + num);
-            const data = await res.json();
-            document.getElementById('result').innerText = data.code || data.error || 'Error';
+            document.getElementById('result').innerText = '⏳ Connecting...';
+            try {
+                const res = await fetch('/pair?number=' + num);
+                const data = await res.json();
+                document.getElementById('result').innerText = data.code || data.error || 'Error';
+            } catch(e) {
+                document.getElementById('result').innerText = '❌ Server error';
+            }
         }
         </script>
     </body>
@@ -36,22 +40,33 @@ app.get('/pair', async (req, res) => {
     if (!number) return res.json({ error: 'Number required' });
 
     try {
-        const { default: makeWASocket, useMultiFileAuthState } = require('@whiskeysockets/baileys');
+        const { default: makeWASocket, useMultiFileAuthState, Browsers } = require('@whiskeysockets/baileys');
         const { state, saveCreds } = await useMultiFileAuthState('auth_info');
+        
         const sock = makeWASocket({
             auth: state,
-            printQRInTerminal: true,
-            browser: ['Mosa MD Bot', 'Chrome', '1.0.0']
+            browser: Browsers.macOS('Chrome'),
+            printQRInTerminal: false,
+            syncFullHistory: false,
+            markOnlineOnConnect: false,
+            generateHighQualityLinkPreview: false,
         });
 
         sock.ev.on('creds.update', saveCreds);
 
-        // Pairing code
-        const code = await sock.requestPairingCode(number);
-        await sock.ws.close();
-        res.json({ code });
+        // Pairing code with new method
+        setTimeout(async () => {
+            try {
+                const code = await sock.requestPairingCode(number);
+                await sock.ws.close();
+                res.json({ code });
+            } catch (e) {
+                res.json({ error: 'Pairing failed: ' + e.message });
+            }
+        }, 1000);
+
     } catch (e) {
-        res.json({ error: 'Pairing failed: ' + e.message });
+        res.json({ error: 'Server error: ' + e.message });
     }
 });
 
